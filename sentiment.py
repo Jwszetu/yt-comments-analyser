@@ -2,7 +2,7 @@ import csv
 import json
 import re
 import time
-from transformers import AutoTokenizer, TFAutoModelForSequenceClassification, AutoModelForSequenceClassification 
+from transformers import AutoTokenizer, AutoModelForSequenceClassification 
 import numpy as np
 import pandas as pd
 from scipy.special import softmax

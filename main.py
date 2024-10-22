@@ -47,7 +47,7 @@ def setup_parser():
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-u', help='youtube video url', nargs='?')
     group.add_argument('-id', help='youtube video id', nargs='?')
-    parser.add_argument('-n', help='number of results', nargs='?', type=int, default=5, choices=range(1,50))
+    parser.add_argument('-n', help='number of results',  nargs='?', type=int, metavar='N', default=5, choices=range(1,50))
     # print output
     parser.add_argument('-p', help='print output', action='store_true')
     # Output Format .json, .txt, .csv
