@@ -1,26 +1,24 @@
+import sys
 from dotenv import load_dotenv
-from data import get_sentiment
-import requests
+from client import get_comments
+from sentiment import SentimentAnaylsis as senti
 import argparse
 import os
 import re
 
 def main(): 
-    parser = argparse.ArgumentParser(description='Youtube Comment Sentiment Analyzer')
-    parser.add_argument('-u', help='youtube video url', nargs='?')
-    parser.add_argument('-id', help='youtube video id', nargs='?')
-    parser.add_argument('-n', help='number of results', nargs='?', type=int, default=5)
-    
-    
+
+    # Generates the parser object to read CLI arguments
+    parser = setup_parser()
     args = parser.parse_args()
-    url_pattern = r'\?v=([\S]+),?'
-    video_id = ''
-    n_Results = 0
     
+    # Define the regex pattern to extract the video if from the youtube URL
+    url_pattern = r'\?v=([\S]+),?'
+        
+    # Loading .env file
     load_dotenv()
     
-    # print(args)
-    
+    # Assigning the video Id based on the arguments recieved
     if(args.u):
         match = re.search(url_pattern, args.u)
         if match:
@@ -29,24 +27,37 @@ def main():
         video_id = args.i
     
     if(args.n):
-        n_Results = args.n
+        n_Results = args.n | 1
 
-
-    url = f'https://www.googleapis.com/youtube/v3/commentThreads?key={os.getenv("API_KEY")}&textFormat=plainText&part=snippet&videoId={video_id}&maxResults={n_Results}'
-    response = requests.get(url)
-    data = response.json()['items']
-
-    comments = list(map(getText, data))
+    # Fetches the yt comments from a video
+    comments = get_comments(os.getenv("API_KEY"), video_id, n_Results) 
     
-    #print(comments)
+    err_exit(len(comments) == 0, 'No comments found.')
     
-    results = []
+    sentiAnalysis = senti()
     
-    for comment in comments:
-        results.append(get_sentiment(comment))
+    results = sentiAnalysis.get_senitments(comments, print_results=args.p)
+    
+    if(args.o):
+        sentiAnalysis.save_data(results, video_id, args.o)
 
-def getText(comment):
-    return comment['snippet']['topLevelComment']['snippet']['textOriginal']
+
+def setup_parser():
+    parser = argparse.ArgumentParser(description='Youtube Comment Sentiment Analyzer')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-u', help='youtube video url', nargs='?')
+    group.add_argument('-id', help='youtube video id', nargs='?')
+    parser.add_argument('-n', help='number of results', nargs='?', type=int, default=5, choices=range(1,50))
+    # print output
+    parser.add_argument('-p', help='print output', action='store_true')
+    # Output Format .json, .txt, .csv
+    parser.add_argument('-o', help='save result to output', nargs='?', choices=['csv', 'json'])
+    return parser
+
+def err_exit(test=False, msg = ''):
+    if test:
+        print(f'Error: {msg}')
+        sys.exit(1)
 
 # boilerplate
 if __name__ == "__main__":
