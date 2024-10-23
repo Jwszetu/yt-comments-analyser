@@ -36,10 +36,13 @@ def main():
     
     sentiAnalysis = senti()
     
-    results = sentiAnalysis.get_senitments(comments, print_results=args.p)
+    results = sentiAnalysis.get_senitments(comments)
     
     if(args.o):
         sentiAnalysis.save_data(results, video_id, args.o)
+    
+    if(args.p):
+        sentiAnalysis.print_data(results)
 
 
 def setup_parser():

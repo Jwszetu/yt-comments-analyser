@@ -20,14 +20,10 @@ def get_labels():
 def get_model():
     return 'cardiffnlp/twitter-roberta-base-sentiment'
 
-def get_sentiment(input_text, print_results=False, MODEL=get_model()):
+def get_sentiment(input_text, MODEL=get_model()):
     tokenizer = AutoTokenizer.from_pretrained(MODEL)
     
-    labels = ['negative', 'neutral', 'positive']
-    
     model = AutoModelForSequenceClassification.from_pretrained(MODEL)
-    # model.save_pretrained(MODEL)
-    # tokenizer.save_pretrained(MODEL)
     
     text = preprocess(input_text)
     encoded_input = tokenizer(text, return_tensors='pt')
@@ -38,10 +34,7 @@ def get_sentiment(input_text, print_results=False, MODEL=get_model()):
     ranking = np.argsort(scores)
     ranking = ranking[::-1]
     
-    if print_results:
-        print_data(scores, ranking, labels, text);
-    
-    return {'comment': input_text, 'scores': scores.tolist()}
+    return {'comment': input_text, 'scores': scores.tolist(), 'ranking': ranking.tolist()}
 
 
 def get_senitments(data, print_results=False, MODEL=get_model()):
@@ -69,7 +62,3 @@ def save_data(data, id, ext='json'):
             pass
         case _:
             pass
-
-# Converting the results obj to 
-def to_csv(data):
-    pass

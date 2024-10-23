@@ -37,7 +37,7 @@ class SentimentAnaylsis():
             new_text.append(t)
         return " ".join(new_text)
 
-    def get_sentiment(self, input_text, print_results=False, model=None, labels=None):
+    def get_sentiment(self, input_text, model=None, labels=None):
         MODEL = ternary(model != None, model, self.model)
         LABELS = ternary(labels != None, labels, self.labels)
         
@@ -56,18 +56,18 @@ class SentimentAnaylsis():
         ranking = np.argsort(scores)
         ranking = ranking[::-1]
 
-        if print_results:
-            self.print_data(scores, ranking, LABELS, text);
+        # if print_results:
+        #     self.print_data(scores, ranking, LABELS, text)
 
-        return {'comment': text, 'scores': scores.tolist()}
+        return {'comment': text, 'scores': scores.tolist(), 'ranking': ranking.tolist()}
 
 
-    def get_senitments(self, data, print_results=False, model=None, labels=None):
+    def get_senitments(self, data, model=None, labels=None):
         MODEL = ternary(model != None, model, self._model)
         LABELS = ternary(labels != None, labels, self._labels)
             # Get all sentiments for a dataset
             # list(map(get_sentiment, comments))
-        results =  [self.get_sentiment(comment, print_results, MODEL, LABELS) for comment in data]
+        results =  [self.get_sentiment(comment, MODEL, LABELS) for comment in data]
         scores = list(map(lambda a: a['scores'], results))
 
         return {
@@ -76,12 +76,19 @@ class SentimentAnaylsis():
                 'stats': {'mean':  np.mean(scores, axis=0).tolist(), 'median': np.median(scores, axis=0).tolist()}, 
                 'results': results}
 
-    def print_data(self, scores, ranking, labels, text):
-        print(f'\n{text}')
-        for i in range(scores.shape[0]):
-            l = labels[ranking[i]]
-            s = scores[ranking[i]]
-            print(f"{i+1}) {l} {np.round(float(s), 4)}")
+    def print_data(self, data: dict[str: any]):
+        print(data)
+        labels  = data['labels']
+        for item in data['results']:
+            scores  = item['scores']
+            ranking  = item['ranking']
+            text = item['comment']
+
+            print(f'\n{text}\n')
+            for i in range(len(scores)):
+                l = labels[ranking[i]]
+                s = scores[ranking[i]]
+                print(f"{i+1}) {l} {np.round(float(s), 4)}")
 
     def save_data(self, data, id, ext='json'):
         FILE_PATH = './results'
