@@ -30,19 +30,17 @@ class SentimentAnaylsis():
 
     def preprocess(self, text):
         new_text = []
-        text = re.sub(r'(\t|\n)', '', text)
+        text = re.sub(r'(\t|\n)', ' ', text)
     
         for t in text.split(" "):
             t = 'http' if t.startswith('http') else t
             new_text.append(t)
         return " ".join(new_text)
 
-    def get_sentiment(self, input_text, model=None, labels=None):
+    def get_sentiment(self, input_text, model=None):
         MODEL = ternary(model != None, model, self.model)
-        LABELS = ternary(labels != None, labels, self.labels)
-        
-        tokenizer = AutoTokenizer.from_pretrained(MODEL)
 
+        tokenizer = AutoTokenizer.from_pretrained(MODEL)
         model = AutoModelForSequenceClassification.from_pretrained(MODEL)
         # model.save_pretrained(MODEL)
         # tokenizer.save_pretrained(MODEL)
@@ -56,9 +54,6 @@ class SentimentAnaylsis():
         ranking = np.argsort(scores)
         ranking = ranking[::-1]
 
-        # if print_results:
-        #     self.print_data(scores, ranking, LABELS, text)
-
         return {'comment': text, 'scores': scores.tolist(), 'ranking': ranking.tolist()}
 
 
@@ -67,7 +62,7 @@ class SentimentAnaylsis():
         LABELS = ternary(labels != None, labels, self._labels)
             # Get all sentiments for a dataset
             # list(map(get_sentiment, comments))
-        results =  [self.get_sentiment(comment, MODEL, LABELS) for comment in data]
+        results =  [self.get_sentiment(comment, MODEL) for comment in data]
         scores = list(map(lambda a: a['scores'], results))
 
         return {
